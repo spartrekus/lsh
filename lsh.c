@@ -398,6 +398,8 @@ void change_mode()
 //////////////////////////////////////////
 int main( int argc, char *argv[])
 {
+     char clipboard[PATH_MAX];
+     strncpy( clipboard, "", PATH_MAX );
 
      ////////////////////////////////////////////////////////
      if ( argc == 2 )
@@ -478,10 +480,10 @@ int main( int argc, char *argv[])
             home();
             printf( "Mode 2\n" );
             for( i = 0; i <= 9 ; i++) 
-            printf( "Keys: %d\n" , keys[i] ); 
+            printf( "TERM Keys: %d\n" , keys[i] ); 
             printf( "Degug mode (d): %d\n" , app_debug );
             printf( "Degug str     (S): '%s'\n" , strmsg );
-            printf( "Degug strlen  (d): '%lu'\n" , strlen(strmsg) );
+            printf( "Degug strlen  (d): '%lu'\n" , (unsigned long) strlen(strmsg) );
             printf( "Curs(X,Y,MX)(S): %d %d\n" , curs_posx , curs_posy );
             printf( "Curs(C): %c\n" , strmsg[ curs_posx ] );
             printf( "\nKEY %d %c\n", ch , ch );
@@ -494,6 +496,27 @@ int main( int argc, char *argv[])
 
          if ( ch == 18 )   // CTRL+R
             change_mode();
+
+         else if ( ch == 25 )   // CTRL+Y  Copy
+         {   
+            strncpy( clipboard, strmsg , PATH_MAX );
+         }
+         else if ( ch == 16 )   // CTRL+P  Paste
+         {   
+            strncpy( strmsg , clipboard, PATH_MAX );
+            curs_posx = strlen( strmsg );
+         }
+
+         else if ( ch == 23 )   // CTRL+W 
+         {   
+           strncat( strmsg , ">" , PATH_MAX - strlen( strmsg ) -1 );
+           curs_posx = strlen( strmsg );
+         }
+         else if ( ch == 5 )    // CTRL+E 
+         {   
+           strncat( strmsg , "=" , PATH_MAX - strlen( strmsg ) -1 );
+           curs_posx = strlen( strmsg );
+         }
 
          else if ( ch == 15 )   // CTRL+O to change dir with argument
          {
@@ -581,11 +604,30 @@ int main( int argc, char *argv[])
              else if ( strcmp( strmsg , "!exit" ) == 0 ) 
 	     {     strncpy( strmsg, ""  ,  PATH_MAX );   foousergam = 1;   } 
 
+
+             else if ( strcmp( strmsg , "!compile" ) == 0 ) 
+                  strncpy( strmsg,  " ./configure ; make "  , PATH_MAX );
+
              else if ( strcmp( strmsg , "!get wifi" ) == 0 ) 
 	     { 
                   printf( "The NetBSD command line for wifi.\n" );
                   strncpy( strmsg,  " ifconfig urtwn0 up  ; ifconfig urtwn0 list scan ; /usr/sbin/wpa_supplicant -B -D bsd -i urtwn0 -c /etc/wpa_supplicant.conf ; dhclient urtwn0 "  , PATH_MAX );
 	     } 
+
+             else if ( strcmp( strmsg , "!reboot" ) == 0 ) 
+                  strncpy( strmsg,  " reboot "  , PATH_MAX );
+
+
+             else if ( strcmp( strmsg , "!cat" ) == 0 ) 
+             {     
+                  clrscr(); home();  
+                  printf( "= Menu Cat =\n" ); 
+                  strncpy( strmsg,  ""  , PATH_MAX );
+                  getchar(); 
+             }
+
+             else if ( strcmp( strmsg , "!clr" ) == 0 ) 
+             {     clrscr(); home();  }
 
              else if ( strcmp( strmsg , "!help" ) == 0 ) 
 	     { 
