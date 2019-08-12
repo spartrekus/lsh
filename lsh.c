@@ -606,6 +606,13 @@ int main( int argc, char *argv[])
            curs_posx = strlen( strmsg );
          }
 
+         else if ( ch == 14 )   // Quick ls with CTRL+N
+         {
+            printf( "\n" );
+            nlsf();
+            printf( "\n" );
+         }
+
          else if ( ch == 15 )   // CTRL+O to change dir with argument
          {
             printf( "\n" );
