@@ -620,8 +620,10 @@ int main( int argc, char *argv[])
             strncpy( strmsg, "", PATH_MAX );
          }
 
-         else if ( ch == 9 )   // TAB
+
+         else if ( ch == 9 )   // TAB  for fast completion
          {
+           printf( "\n" );
            if ( strmsg[ strlen( strmsg ) -1 ] != ' ' )
            {
             if ( strstr( strmsg , " " ) != 0 ) 
@@ -637,6 +639,7 @@ int main( int argc, char *argv[])
             printf( "\n" );
            }
          }
+
 
          else if ( ch == 6 )   // CTRL+F to find argument
          {
