@@ -62,7 +62,8 @@ int app_debug = 3;
 #define KREV    "\x1B[7m"
 
 
-int rows, cols ; 
+int rows = 10;
+int cols = 20;
 int keys[10];
 char strmsglast[PATH_MAX];
 char strmsg[PATH_MAX];
@@ -244,6 +245,86 @@ void listdir(const char *name, int indent)
 
 
 
+///////////////////////////////////////////
+void readfilesp( char *filesource, int linestart , int lineend )
+{
+  FILE *source; 
+  int ch ;  int linecount = 1;
+  source = fopen( filesource , "r");
+  if ( source == NULL ) { printf( "File not found.\n" ); } else  
+  {
+   printf( "     FILE: %s\n", filesource );
+   printf( "     ");
+   while( ( ch = fgetc(source) ) != EOF )
+   {
+       if ( linecount <= lineend ) 
+       {
+         if ( ch == '\n' ) 
+         {
+            linecount++; 
+            printf( "\n");
+            printf( "     ");
+            printf( "%d: ", linecount );
+         }
+         else
+            printf( "%c", ch );
+       }
+   }
+   fclose(source);
+   }
+ 
+   printf( "\n" );
+   printf( "\33[2K" ); 
+   printf( "\r" );
+   printf( "     ");
+   printf( "---(...)" );
+   for ( ch = 0 ;  ch <= cols-1 ; ch++) 
+     printf( "%c", '-');
+   printf( "\n" );
+}
+   
+
+
+
+
+void cmdline_clear()
+{
+               strncpy( strmsg, "", PATH_MAX );
+               curs_posx = strlen( strmsg ); 
+}
+
+void save_clip( char *clipcontent )
+{ 
+     char file[PATH_MAX];
+     FILE *fp1; 
+     strncpy( file , getenv( "HOME" ) , PATH_MAX );
+     strncat( file , "/" ,    PATH_MAX - strlen( file ) -1 );
+     strncat( file , ".lsh.ini" ,   PATH_MAX - strlen( file ) -1 );
+     fp1 = fopen( file , "wb");
+        fputs( clipcontent, fp1 );
+        fputs( "\n" , fp1);
+     fclose( fp1 );
+}
+
+
+
+void nlsf()
+{ 
+   DIR *dirp;
+   struct dirent *dp;
+   dirp = opendir( "." );
+   while  ((dp = readdir( dirp )) != NULL ) 
+   {
+         if (  strcmp( dp->d_name, "." ) != 0 )
+          if (  strcmp( dp->d_name, ".." ) != 0 )
+           if ( dp->d_name[ 0 ] != '.' ) 
+             printf( "%s\n", dp->d_name );
+   }
+   closedir( dirp );
+}
+
+
+
 void nls()
 { 
    DIR *dirp;
@@ -394,12 +475,16 @@ void change_mode()
 }
 
 
+
+
+
 //////////////////////////////////////////
 //////////////////////////////////////////
 int main( int argc, char *argv[])
 {
      char clipboard[PATH_MAX];
      strncpy( clipboard, "", PATH_MAX );
+
 
      ////////////////////////////////////////////////////////
      if ( argc == 2 )
@@ -500,11 +585,14 @@ int main( int argc, char *argv[])
          else if ( ch == 25 )   // CTRL+Y  Copy
          {   
             strncpy( clipboard, strmsg , PATH_MAX );
+            save_clip( clipboard );
          }
          else if ( ch == 16 )   // CTRL+P  Paste
          {   
-            strncpy( strmsg , clipboard, PATH_MAX );
-            curs_posx = strlen( strmsg );
+           // strncpy( strmsg , clipboard, PATH_MAX );
+           // curs_posx = strlen( strmsg );
+           strncat( strmsg , clipboard , PATH_MAX - strlen( strmsg ) -1 );
+           curs_posx = strlen( strmsg );
          }
 
          else if ( ch == 23 )   // CTRL+W 
@@ -548,6 +636,18 @@ int main( int argc, char *argv[])
             strncpy( searchitem, strmsg , PATH_MAX );          
             printf( "\n" );
             listdir( ".", 0 );
+            printf( "\n" );
+         }
+
+         else if ( ch == 20 )   // CTRL+T to view cur file
+         {
+            printf( "\n" );
+            if (     ( app_debug == 1 ) || ( app_debug == 2 ) )
+               { clrscr(); home();   }
+            readfilesp( strmsg , 0 , rows-1 );
+            //printf( "     ");
+            //printf( "<Press Key>" );
+            //getchar();
             printf( "\n" );
          }
 
@@ -615,8 +715,11 @@ int main( int argc, char *argv[])
 	     } 
 
              else if ( strcmp( strmsg , "!reboot" ) == 0 ) 
+             {
                   strncpy( strmsg,  " reboot "  , PATH_MAX );
-
+                  system( " reboot " ); 
+                  system( " sudo reboot " ); 
+             }
 
              else if ( strcmp( strmsg , "!cat" ) == 0 ) 
              {     
@@ -626,8 +729,10 @@ int main( int argc, char *argv[])
                   getchar(); 
              }
 
+
              else if ( strcmp( strmsg , "!clr" ) == 0 ) 
              {     clrscr(); home();  }
+
 
              else if ( strcmp( strmsg , "!help" ) == 0 ) 
 	     { 
@@ -657,11 +762,33 @@ int main( int argc, char *argv[])
                   strncpy( strmsg, "", PATH_MAX );
 	     } 
 
+             else if ( strcmp( strmsg , "!byel" ) == 0 ) 
+             {
+               printf("\n");
+	       printf("%s", KBYEL); printf("Hello Yellow Terminal (bright)\n"); 
+               printf("\n");
+               cmdline_clear();
+             } 
+             else if ( strcmp( strmsg , "!yel" ) == 0 ) 
+             {
+               printf("\n");
+	       printf("%s", KYEL); printf("Hello Yellow Terminal\n"); 
+               printf("\n");
+               cmdline_clear();
+             } 
+
              else if ( strcmp( strmsg , "!clr" ) == 0 ) 
 	     { 
                   clrscr(); home();
                   strncpy( strmsg, "", PATH_MAX );
 	     } 
+
+             else if ( strcmp( strmsg , "!lsf" ) == 0 ) 
+	     {    
+	       printf( "\n" ); 
+               nlsf();  
+               strncpy( strmsg, "", PATH_MAX );
+	     }    
 
              else if ( ( strcmp( strmsg , "!ls" ) == 0 ) ||  ( strcmp( strmsg , "!dir" ) == 0 ) )
 	     {    
